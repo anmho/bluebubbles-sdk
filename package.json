@@ -5,9 +5,9 @@
   "main": "./dist/index.js",
   "type": "module",
   "scripts": {
-    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o postman-collection.json",
-    "spec:convert": "sed -i '' 's/{{scheme}}:\\/\\/{{host}}/http:\\/\\/localhost/g' postman-collection.json && sed -i '' 's/{{host}}/localhost/g' postman-collection.json && sed -i '' 's/{{scheme}}/http/g' postman-collection.json && sed -i '' 's/{{password}}/password/g' postman-collection.json && sed -i '' 's/\"localhost\\//\"http:\\/\\/localhost\\//g' postman-collection.json && sed -i '' 's/<Chat GUID>/:chatGuid/g' postman-collection.json && sed -i '' 's/<GUID>/:guid/g' postman-collection.json && sed -i '' 's/<Handle Address>/:handleAddress/g' postman-collection.json && sed -i '' 's/<ID>/:id/g' postman-collection.json && sed -i '' 's/<Uploaded Attachment UUID>/:attachmentUuid/g' postman-collection.json && ./node_modules/.bin/postman-to-openapi -s postman-collection.json -o openapi.yaml && sed -i '' 's/:chatGuid/{chatGuid}/g' openapi.yaml && sed -i '' 's/:guid/{guid}/g' openapi.yaml && sed -i '' 's/:handleAddress/{handleAddress}/g' openapi.yaml && sed -i '' 's/:id/{id}/g' openapi.yaml && sed -i '' 's/:attachmentUuid/{attachmentUuid}/g' openapi.yaml && python3 fix_spec.py && python3 fix_spec_ops.py",
-    "generate": "openapi --input openapi.yaml --output src/generated --client fetch --useOptions --useUnionTypes --name BlueBubblesApi",
+    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o bluebubbles.postman.json",
+    "spec:convert": "npx postman2openapi bluebubbles.postman.json -o bluebubbles.openapi.yaml",
+    "generate": "npx openapi-typescript-codegen --input bluebubbles.openapi.yaml --output ./src --client fetch --useOptions --name BlueBubblesClient --split --postfixServices Service",
     "build": "npm run spec:download && npm run spec:convert && npm run generate && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,6 +19,7 @@
     "openapi-typescript-codegen": "^0.30.0",
     "postman-to-openapi": "^1.7.3",
     "postman-to-openapi-cli": "^1.1.2",
+    "postman2openapi": "^1.2.1",
     "typescript": "^6.0.2"
   }
 }

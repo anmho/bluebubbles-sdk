@@ -18,7 +18,7 @@ import { OtherService } from './services/OtherService';
 import { ServerService } from './services/ServerService';
 import { WebService } from './services/WebService';
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
-export class BlueBubblesApi {
+export class BlueBubblesClient {
     public readonly attachments: AttachmentsService;
     public readonly backups: BackupsService;
     public readonly chats: ChatsService;
