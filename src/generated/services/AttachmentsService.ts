@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-export class AttachmentService {
+export class AttachmentsService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
      * Get Attachment Count
@@ -56,7 +56,7 @@ export class AttachmentService {
              * @returns any Successful response
              * @throws ApiError
              */
-            public getAttachmentByGuid({
+            public get({
                 guid,
             }: {
                 guid: string,
@@ -97,7 +97,7 @@ export class AttachmentService {
              * @returns any Successful response
              * @throws ApiError
              */
-            public downloadAttachment({
+            public download({
                 guid,
             }: {
                 guid: string,

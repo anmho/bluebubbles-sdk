@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-export class HandleService {
+export class HandlesService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
      * Get Handle's Focus Status
@@ -114,7 +114,7 @@ export class HandleService {
              * @returns any Successful response
              * @throws ApiError
              */
-            public getHandleByAddress({
+            public get({
                 handleAddress,
             }: {
                 handleAddress: string,

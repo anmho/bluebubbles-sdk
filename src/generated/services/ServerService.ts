@@ -91,6 +91,45 @@ export class ServerService {
         });
     }
     /**
+     * Get Media Totals
+     * <p>Fetches different types of media totals for all chats (i.e. videos &amp; images).</p>
+     *
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public getMediaTotals(): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/api/v1/server/statistics/media',
+        });
+    }
+    /**
+     * Get Media Totals Per Chat
+     * <p>Fetches different types of media totals per chat (i.e. videos &amp; images).</p>
+     *
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public getMediaTotalsPerChat(): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/api/v1/server/statistics/media/chat',
+        });
+    }
+    /**
+     * Get iMessage Entity Totals
+     * <p>Fetches the database totals for the iMessage entities (i.e. handles, messages, chats, etc.)</p>
+     *
+     * @returns any Successful response
+     * @throws ApiError
+     */
+    public getImessageEntityTotals(): CancelablePromise<any> {
+        return this.httpRequest.request({
+            method: 'GET',
+            url: '/api/v1/server/statistics/totals',
+        });
+    }
+    /**
      * Check for Server Update
      * <p>Check to see if the BlueBubbles Server App has an update available. If an update is available, the update metadata will be returned.</p>
      *

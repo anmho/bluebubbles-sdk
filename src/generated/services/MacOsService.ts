@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-export class MacOsService {
+export class MacosService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
      * Lock Mac

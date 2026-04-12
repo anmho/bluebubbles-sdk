@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { CancelablePromise } from '../core/CancelablePromise';
 import type { BaseHttpRequest } from '../core/BaseHttpRequest';
-export class ICloudService {
+export class IcloudService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**
      * Modify Active Alias
