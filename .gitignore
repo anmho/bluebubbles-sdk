@@ -1,0 +1,7 @@
+node_modules/
+dist/
+postman-collection.json
+openapi.yaml
+fix_spec.py
+fix_spec_ops.py
+.DS_Store
