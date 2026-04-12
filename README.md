@@ -1,90 +1,86 @@
-# BlueBubbles TypeScript SDK
+# @anmho/bluebubbles-sdk
 
-A clean, production-ready TypeScript SDK for the BlueBubbles Server REST API.
+Resource-grouped TypeScript SDK for BlueBubbles, generated from the official Postman collection with a thin custom facade.
 
-## Features
-- **Modern & Typed**: Fully typed request/response interfaces generated from the latest OpenAPI spec.
-- **Resource Grouped**: Intuitive API structure (chats, messages, handles, attachments).
-- **Authentication**: Automatic query parameter injection for `password`/`guid`.
-- **Lightweight**: Minimal dependencies, uses native `fetch`.
-- **Tree-shakable**: Import only what you need.
-- **Universal**: Works in Node.js, Browsers, and React Native.
-
-## Installation
+## Install
 
 ```bash
-npm install bluebubbles-sdk
+npm install @anmho/bluebubbles-sdk
 ```
 
-## Quick Start
+## Usage
 
-```typescript
-import { BlueBubblesClient } from 'bluebubbles-sdk';
+```ts
+import { BlueBubblesClient } from '@anmho/bluebubbles-sdk';
 
 const client = new BlueBubblesClient({
-    baseUrl: 'https://your-server-address',
-    password: 'your-server-password'
+  baseUrl: 'http://localhost:1234',
+  password: 'your-server-password',
 });
 
-// Fetch a chat
-const chat = await client.chats.get({ chatGuid: 'iMessage;+;1234567890' });
-
-// List recent messages in a chat
-const messages = await client.chats.listMessages({ chatGuid: 'iMessage;+;1234567890' });
-
-// Send a text message
+const chat = await client.chats.get({ chatGuid: 'iMessage;+;12345' });
 await client.messages.sendText({
-    requestBody: {
-        chatGuid: 'iMessage;+;1234567890',
-        text: 'Hello from the SDK!'
-    }
+  body: {
+    chatGuid: 'iMessage;+;12345',
+    message: 'hello from sdk',
+  },
 });
+
+const attachment = await client.attachments.download({ guid: 'ATTACHMENT_GUID' });
+
+// Create an isolated derived client with updated config
+const stagingClient = client.withConfig({
+  baseUrl: 'https://staging.example.com',
+});
+
+// Read-only config snapshot
+console.log(stagingClient.config.baseUrl);
 ```
 
-## API Overview
+All resource methods use a single named params object:
 
-### Chats
-- `client.chats.get({ chatGuid })`: Get chat details.
-- `client.chats.list({ requestBody? })`: Query chats.
-- `client.chats.listMessages({ chatGuid })`: Get messages for a chat.
-- `client.chats.create({ requestBody })`: Create a new chat.
-- `client.chats.markRead({ chatGuid })`: Mark chat as read.
+- path params as top-level fields (`{ chatGuid }`, `{ guid }`, `{ id }`, etc.)
+- optional `query` object
+- optional `body`
+- optional `headers`
 
-### Messages
-- `client.messages.get({ guid })`: Get message by GUID.
-- `client.messages.list({ requestBody? })`: Query messages.
-- `client.messages.sendText({ requestBody })`: Send a text message.
-- `client.messages.sendAttachment({ requestBody })`: Send an attachment.
+## Resources
 
-### Handles
-- `client.handles.get({ handleAddress })`: Get handle details.
-- `client.handles.list({ requestBody? })`: Query handles.
+`client.attachments`, `client.backups`, `client.chats`, `client.contacts`, `client.fcm`, `client.handles`, `client.icloud`, `client.macos`, `client.messages`, `client.server`, `client.web`.
 
-### Attachments
-- `client.attachments.get({ guid })`: Get attachment details.
-- `client.attachments.download({ guid })`: Download an attachment.
-
-### Raw API
-If you need access to endpoints not covered by the grouped helpers, you can use the raw underlying services:
-```typescript
-const serverInfo = await client.raw.server.getServerInfo();
-```
-
-## Development
-
-### Building
-The SDK is generated from a Postman collection. To update and build:
+## Build Pipeline
 
 ```bash
 npm run build
 ```
 
-This will:
-1. Download the latest Postman collection.
-2. Convert it to OpenAPI 3.0.
-3. Patch the spec for better TypeScript ergonomics.
-4. Generate the SDK source.
-5. Compile to JavaScript.
+`build` runs:
 
-## License
-ISC
+1. download Postman collection
+2. prepare unresolved Postman placeholders for conversion
+3. convert Postman -> OpenAPI (`spec/openapi.yaml`)
+4. verify semantic parity against local `Jish2/bluebubbles-sdk` spec mirror
+5. generate Hey API types (`src/generated`) and endpoint manifest (`src/manifest.gen.ts`)
+6. compile TypeScript
+
+If parity checking is temporarily too strict while upstream and Postman drift, use:
+
+```bash
+npm run build:skip-verify
+```
+
+## Scripts
+
+- `spec:download`
+- `spec:prepare`
+- `spec:convert`
+- `spec:verify`
+- `generate` (runs `generate:raw` + `generate:manifest`)
+- `build`
+- `build:skip-verify`
+- `check`
+
+## Notes
+
+- No hand-editing of generated files in `src/generated` or `src/manifest.gen.ts`.
+- Facade runtime is intentionally thin and resource-grouped; it does not rewrite the upstream spec.
