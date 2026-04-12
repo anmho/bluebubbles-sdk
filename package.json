@@ -5,10 +5,10 @@
   "main": "./dist/index.js",
   "type": "module",
   "scripts": {
-    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o bluebubbles.postman.json",
-    "spec:convert": "npx postman2openapi bluebubbles.postman.json -o bluebubbles.openapi.yaml",
-    "generate": "npx openapi-typescript-codegen --input bluebubbles.openapi.yaml --output ./src --client fetch --useOptions --name BlueBubblesClient --split --postfixServices Service",
-    "build": "npm run spec:download && npm run spec:convert && npm run generate && tsc",
+    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o spec/bluebubbles.postman.json",
+    "spec:convert": "npx postman-to-openapi -s spec/bluebubbles.postman.json -o spec/bluebubbles.openapi.yaml",
+    "generate": "npx openapi-typescript-codegen --input spec/bluebubbles.openapi.yaml --output ./src --client fetch --useOptions --name BlueBubblesClient --postfixServices Service",
+    "build": "npm run spec:download && sed -i '' 's/{{scheme}}:\\/\\/{{host}}/http:\\/\\/localhost/g' spec/bluebubbles.postman.json && sed -i '' 's/{{host}}/localhost/g' spec/bluebubbles.postman.json && sed -i '' 's/{{scheme}}/http/g' spec/bluebubbles.postman.json && sed -i '' 's/{{password}}/password/g' spec/bluebubbles.postman.json && sed -i '' 's/\"localhost\\//\"http:\\/\\/localhost\\//g' spec/bluebubbles.postman.json && npm run spec:convert && python3 scripts/fix_spec.py && npm run generate && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
