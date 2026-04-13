@@ -1,0 +1,50 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "@anmho/bluebubbles-sdk",
+  "colors": {
+    "primary": "#1d4ed8",
+    "light": "#2563eb",
+    "dark": "#1e40af"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "SDK",
+            "pages": [
+              "index",
+              "quickstart",
+              "resource-model",
+              "configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "OpenAPI",
+            "openapi": "openapi.yaml"
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/anmho/bluebubbles-sdk"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/anmho/bluebubbles-sdk"
+    }
+  }
+}

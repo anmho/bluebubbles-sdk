@@ -1,0 +1,36 @@
+---
+title: BlueBubbles SDK
+description: Resource-grouped TypeScript SDK generated from the official BlueBubbles Postman collection.
+---
+
+## Overview
+
+`@anmho/bluebubbles-sdk` provides a resource-grouped interface on top of generated API types.
+
+- Postman-derived spec pipeline (`download -> prepare -> convert -> generate`)
+- Resource groups like `client.chats`, `client.messages`, `client.server`
+- Immutable client options with `withConfig(...)` cloning
+
+## Install
+
+```bash
+npm install @anmho/bluebubbles-sdk
+```
+
+## Quick sample
+
+```ts
+import { BlueBubblesClient } from '@anmho/bluebubbles-sdk';
+
+const client = new BlueBubblesClient({
+  baseUrl: 'http://localhost:1234',
+  password: 'your-server-password',
+});
+
+const chat = await client.chats.get({ path: { chatGuid: 'iMessage;+;12345' } });
+await client.messages.sendText({
+  body: { chatGuid: 'iMessage;+;12345', message: 'hello' },
+});
+```
+
+See the `Quickstart` and `Resource Model` pages for details.
