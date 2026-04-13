@@ -6,16 +6,14 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o spec/bluebubbles.postman.json",
-    "spec:prepare": "./scripts/prepare_postman.sh",
-    "spec:convert": "postman-to-openapi -s spec/bluebubbles.postman.json -o spec/openapi.yaml",
-    "spec:verify": "node scripts/verify_spec_identity.mjs",
-    "generate:raw": "openapi-ts -f openapi-ts.config.ts",
-    "generate": "npm run generate:raw && npm run generate:manifest",
-    "build": "npm run spec:download && npm run spec:prepare && npm run spec:convert && npm run spec:verify && npm run generate && tsc -p tsconfig.json",
+    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o spec/bluebubbles.postman.json && tsx scripts/prepare_postman.ts && npx postman-to-openapi -s spec/bluebubbles.postman.json -o spec/openapi.yaml",
+    "generate": "npx openapi-ts -f openapi-ts.config.ts",
+    "build": "npm run generate && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "generate:manifest": "node scripts/generate_manifest.mjs",
-    "build:skip-verify": "npm run spec:download && npm run spec:prepare && npm run spec:convert && npm run generate && tsc -p tsconfig.json"
+    "test": "npm run build && tsx --test tests/**/*.test.ts",
+    "docs:sync-openapi": "cp spec/openapi.yaml docs/openapi.yaml",
+    "docs:dev": "npm run docs:sync-openapi && cd docs && mint dev --no-open",
+    "docs:validate": "npm run docs:sync-openapi && cd docs && mint validate"
   },
   "keywords": [
     "bluebubbles",
@@ -24,9 +22,12 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.59.0",
-    "js-yaml": "^4.1.1",
+    "@hey-api/openapi-ts": "^0.95.0",
+    "mint": "^4.2.507",
     "postman-to-openapi": "^1.7.3",
+    "postman-to-openapi-cli": "^1.1.2",
+    "tsx": "^4.20.5",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3"
   }
 }

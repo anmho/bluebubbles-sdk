@@ -1,17 +1,21 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-  input: 'spec/openapi.yaml',
+  input: './spec/openapi.yaml',
   output: {
     path: 'src/generated',
     clean: true,
+    format: 'prettier',
   },
-  experimentalParser: true,
-  client: false,
+  client: '@hey-api/client-fetch',
   plugins: [
     {
       name: '@hey-api/typescript',
       identifierCase: 'PascalCase',
+    },
+    {
+      name: '@hey-api/sdk',
+      asClass: false,
     },
   ],
 });
