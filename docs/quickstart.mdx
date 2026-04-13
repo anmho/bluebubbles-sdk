@@ -1,0 +1,46 @@
+---
+title: Quickstart
+description: Create a client, call grouped resources, and handle binary responses.
+---
+
+## Create a client
+
+```ts
+import { BlueBubblesClient } from '@anmho/bluebubbles-sdk';
+
+const client = new BlueBubblesClient({
+  baseUrl: 'http://localhost:1234',
+  password: 'your-server-password',
+});
+```
+
+## Chats and messages
+
+```ts
+const chat = await client.chats.get({ path: { chatGuid: 'iMessage;+;12345' } });
+
+const messages = await client.chats.listMessages({
+  path: { chatGuid: 'iMessage;+;12345' },
+  query: { limit: 20, offset: 0 },
+});
+
+await client.messages.sendText({
+  body: {
+    chatGuid: 'iMessage;+;12345',
+    message: 'hello from sdk',
+  },
+});
+```
+
+## Downloads
+
+```ts
+import { isDownloadResponse } from '@anmho/bluebubbles-sdk';
+
+const result = await client.attachments.download({ path: { guid: 'ATTACHMENT_GUID' } });
+
+if (isDownloadResponse(result)) {
+  const bytes = await result.arrayBuffer();
+  console.log(bytes.byteLength);
+}
+```

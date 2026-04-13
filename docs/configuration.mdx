@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: Client options, cloning, and build pipeline scripts.
+---
+
+## Constructor options
+
+```ts
+const client = new BlueBubblesClient({
+  baseUrl: 'http://localhost:1234',
+  password: 'your-server-password',
+  fetch,
+  headers: {
+    'x-trace-id': 'trace-123',
+  },
+});
+```
+
+## Clone with overrides
+
+```ts
+const prodClient = client.withConfig({
+  baseUrl: 'https://prod.example.com',
+});
+```
+
+## Build and docs scripts
+
+```bash
+npm run spec:download
+npm run generate
+npm run build
+npm run docs:sync-openapi
+npm run docs:dev
+npm run docs:validate
+```

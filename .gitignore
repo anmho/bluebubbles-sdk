@@ -5,3 +5,4 @@ openapi.yaml
 fix_spec.py
 fix_spec_ops.py
 .DS_Store
+spec/bluebubbles.postman.json
