@@ -5,8 +5,8 @@ export default defineConfig({
   output: {
     path: 'src/generated',
     clean: true,
-    format: 'prettier',
   },
+  postProcess: ['prettier'],
   client: '@hey-api/client-fetch',
   plugins: [
     {
@@ -15,7 +15,9 @@ export default defineConfig({
     },
     {
       name: '@hey-api/sdk',
-      asClass: false,
+      operations: {
+        strategy: 'single',
+      },
     },
   ],
 });

@@ -1,5 +1,5 @@
 import { createClient, createConfig } from '~/generated/client/index';
-import * as primitives from '~/generated/sdk.gen';
+import { Sdk as GeneratedSdk } from '~/generated/sdk.gen';
 
 type OperationFn = (...args: any[]) => any;
 type OperationOptions = {
@@ -11,6 +11,20 @@ type OperationOptions = {
   url?: string;
   [key: string]: unknown;
 };
+
+const generatedSdk = new GeneratedSdk();
+const primitives: Record<string, OperationFn> = new Proxy<Record<string, OperationFn>>(
+  {},
+  {
+    get(_target, property) {
+      const fn = (generatedSdk as unknown as Record<string, unknown>)[String(property)];
+      if (typeof fn !== 'function') {
+        throw new Error(`Generated SDK method not found: ${String(property)}`);
+      }
+      return (fn as OperationFn).bind(generatedSdk);
+    },
+  },
+);
 
 const normalizeBaseUrl = (baseUrl: string): string => {
   return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
