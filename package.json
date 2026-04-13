@@ -6,7 +6,7 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o spec/bluebubbles.postman.json && tsx scripts/prepare_postman.ts && npx postman-to-openapi -s spec/bluebubbles.postman.json -o spec/openapi.yaml",
+    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o /tmp/bluebubbles.postman.json && tsx scripts/prepare_postman.ts /tmp/bluebubbles.postman.json && npx postman-to-openapi -s /tmp/bluebubbles.postman.json -o spec/openapi.yaml",
     "generate": "npx openapi-ts -f openapi-ts.config.ts",
     "build": "npm run generate && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",

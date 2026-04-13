@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const POSTMAN_PATH = resolve(process.cwd(), 'spec/bluebubbles.postman.json');
+const inputPath = process.argv[2] ?? '/tmp/bluebubbles.postman.json';
+const POSTMAN_PATH = resolve(process.cwd(), inputPath);
 
 const replacers = [
   ['{{scheme}}://{{host}}', 'http://localhost'],
