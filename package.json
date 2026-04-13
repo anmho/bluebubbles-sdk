@@ -21,6 +21,14 @@
     "typescript"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/anmho/bluebubbles-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/anmho/bluebubbles-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anmho/bluebubbles-sdk.git"
+  },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.95.0",
     "mint": "^4.2.507",
