@@ -1,19 +1,20 @@
-import { ApiError } from './errors.js';
-import { ENDPOINTS, RESOURCE_KEYS, type EndpointDescriptor, type ResourceKey } from './manifest.gen.js';
+import { createClient, createConfig } from '~/generated/client/index';
+import * as primitives from '~/generated/sdk.gen';
 
-export type QueryPrimitive = string | number | boolean | null | undefined;
-export type QueryValue = QueryPrimitive | readonly QueryPrimitive[];
-
-export interface RequestInput {
+type OperationFn = (...args: any[]) => any;
+type OperationOptions = {
   body?: unknown;
+  client?: unknown;
   headers?: HeadersInit;
-  query?: Record<string, QueryValue>;
+  path?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  url?: string;
   [key: string]: unknown;
-}
+};
 
-export type ResourceMethod = (input?: RequestInput) => Promise<unknown>;
-export type ResourceClient = Record<string, ResourceMethod>;
-export type ResourceMap = Record<ResourceKey, ResourceClient>;
+const normalizeBaseUrl = (baseUrl: string): string => {
+  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+};
 
 export interface BlueBubblesClientOptions {
   baseUrl: string;
@@ -29,70 +30,57 @@ export interface BlueBubblesClientConfigUpdate {
   headers?: HeadersInit;
 }
 
-const JSON_CONTENT_TYPE = 'application/json';
+export type ApiResponse = unknown;
+export type DownloadResponse = Response;
 
 const isResponseLike = (value: unknown): value is Response => {
   return typeof Response !== 'undefined' && value instanceof Response;
 };
 
-const isStreamBody = (value: unknown): value is BodyInit => {
-  return (
-    value instanceof FormData ||
-    value instanceof URLSearchParams ||
-    value instanceof Blob ||
-    value instanceof ArrayBuffer ||
-    ArrayBuffer.isView(value)
-  );
-};
-
-const normalizeBaseUrl = (baseUrl: string): string => {
-  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-};
-
-const addQuery = (url: URL, query: Record<string, QueryValue>): void => {
-  for (const [key, value] of Object.entries(query)) {
-    if (value === undefined || value === null) continue;
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (item === undefined || item === null) continue;
-        url.searchParams.append(key, String(item));
-      }
-      continue;
-    }
-
-    url.searchParams.set(key, String(value));
-  }
-};
-
-const parseResponsePayload = async (response: Response): Promise<unknown> => {
-  const contentType = response.headers.get('content-type') ?? '';
-
-  if (contentType.includes(JSON_CONTENT_TYPE)) {
-    return response.json();
-  }
-
-  if (contentType.startsWith('text/')) {
-    return response.text();
-  }
-
-  return response;
-};
+export const isDownloadResponse = isResponseLike;
 
 export class BlueBubblesClient {
   private readonly baseUrl: string;
   private readonly password: string;
   private readonly fetchImpl: typeof fetch;
   private readonly defaultHeaders?: HeadersInit;
+  private readonly httpClient: ReturnType<typeof createClient>;
 
-  readonly resources: ResourceMap;
+  readonly attachments: ReturnType<BlueBubblesClient['createAttachments']>;
+  readonly backups: ReturnType<BlueBubblesClient['createBackups']>;
+  readonly chats: ReturnType<BlueBubblesClient['createChats']>;
+  readonly contacts: ReturnType<BlueBubblesClient['createContacts']>;
+  readonly fcm: ReturnType<BlueBubblesClient['createFcm']>;
+  readonly handles: ReturnType<BlueBubblesClient['createHandles']>;
+  readonly icloud: ReturnType<BlueBubblesClient['createIcloud']>;
+  readonly macos: ReturnType<BlueBubblesClient['createMacos']>;
+  readonly messages: ReturnType<BlueBubblesClient['createMessages']>;
+  readonly server: ReturnType<BlueBubblesClient['createServer']>;
+  readonly web: ReturnType<BlueBubblesClient['createWeb']>;
 
   constructor(options: BlueBubblesClientOptions) {
     this.baseUrl = normalizeBaseUrl(options.baseUrl);
     this.password = options.password;
     this.fetchImpl = options.fetch ?? fetch;
     this.defaultHeaders = options.headers;
-    this.resources = this.buildResourceMap();
+    this.httpClient = createClient(
+      createConfig({
+        baseUrl: this.baseUrl,
+        fetch: this.fetchImpl,
+      }),
+    );
+
+    this.attachments = this.createAttachments();
+    this.backups = this.createBackups();
+    this.chats = this.createChats();
+    this.contacts = this.createContacts();
+    this.fcm = this.createFcm();
+    this.handles = this.createHandles();
+    this.icloud = this.createIcloud();
+    this.macos = this.createMacos();
+    this.messages = this.createMessages();
+    this.server = this.createServer();
+    this.web = this.createWeb();
   }
 
   get config(): Readonly<BlueBubblesClientOptions> {
@@ -113,149 +101,170 @@ export class BlueBubblesClient {
     });
   }
 
-  get attachments(): ResourceClient {
-    return this.resources.attachments;
+  private bind<T extends OperationFn>(operation: T): (...args: Parameters<T>) => ReturnType<T> {
+    return ((...args: Parameters<T>) =>
+      this.call(operation, ...args)) as (...args: Parameters<T>) => ReturnType<T>;
   }
 
-  get backups(): ResourceClient {
-    return this.resources.backups;
+  private call<T extends OperationFn>(operation: T, ...args: Parameters<T>): ReturnType<T> {
+    const [options] = args;
+    const resolved = this.withDefaults(options as OperationOptions | undefined);
+    return operation(resolved as Parameters<T>[0]) as ReturnType<T>;
   }
 
-  get chats(): ResourceClient {
-    return this.resources.chats;
-  }
-
-  get contacts(): ResourceClient {
-    return this.resources.contacts;
-  }
-
-  get fcm(): ResourceClient {
-    return this.resources.fcm;
-  }
-
-  get handles(): ResourceClient {
-    return this.resources.handles;
-  }
-
-  get icloud(): ResourceClient {
-    return this.resources.icloud;
-  }
-
-  get macos(): ResourceClient {
-    return this.resources.macos;
-  }
-
-  get messages(): ResourceClient {
-    return this.resources.messages;
-  }
-
-  get server(): ResourceClient {
-    return this.resources.server;
-  }
-
-  get web(): ResourceClient {
-    return this.resources.web;
-  }
-
-  get other(): ResourceClient {
-    return (this.resources as Record<string, ResourceClient>).other ?? {};
-  }
-
-  async request(endpoint: EndpointDescriptor, input: RequestInput = {}): Promise<unknown> {
-    const { body, query = {}, headers, ...rest } = input;
-
-    const resolvedPath = this.resolvePath(endpoint, rest);
-    const url = new URL(resolvedPath.replace(/^\//, ''), this.baseUrl);
-    addQuery(url, {
+  private withDefaults(options?: OperationOptions): OperationOptions {
+    const resolved: OperationOptions = { ...(options ?? {}) };
+    resolved.client = this.httpClient;
+    resolved.query = {
+      ...(resolved.query ?? {}),
       password: this.password,
-      ...query,
-    });
-
-    const requestHeaders = new Headers(this.defaultHeaders);
-    if (headers) {
-      new Headers(headers).forEach((value, key) => {
-        requestHeaders.set(key, value);
-      });
-    }
-
-    const requestInit: RequestInit = {
-      method: endpoint.httpMethod,
-      headers: requestHeaders,
     };
 
-    if (body !== undefined && endpoint.httpMethod !== 'GET') {
-      if (isStreamBody(body)) {
-        requestInit.body = body;
-      } else {
-        if (!requestHeaders.has('content-type')) {
-          requestHeaders.set('content-type', JSON_CONTENT_TYPE);
-        }
-        requestInit.body = JSON.stringify(body);
-      }
-    }
-
-    const response = await this.fetchImpl(url, requestInit);
-    const payload = await parseResponsePayload(response);
-
-    if (!response.ok) {
-      throw new ApiError({
-        status: response.status,
-        method: endpoint.httpMethod,
-        url: url.toString(),
-        payload,
-        message: this.extractErrorMessage(payload) ?? undefined,
+    const headers = new Headers(this.defaultHeaders);
+    if (resolved.headers) {
+      new Headers(resolved.headers).forEach((value, key) => {
+        headers.set(key, value);
       });
     }
 
-    return payload;
-  }
-
-  private buildResourceMap(): ResourceMap {
-    const resources = Object.fromEntries(
-      RESOURCE_KEYS.map((resource) => [resource, {} as ResourceClient]),
-    ) as ResourceMap;
-
-    for (const endpoint of ENDPOINTS) {
-      const resource = endpoint.resource as ResourceKey;
-      resources[resource][endpoint.methodName] = (input?: RequestInput) => this.request(endpoint, input);
+    if ([...headers.keys()].length > 0) {
+      resolved.headers = headers;
     }
 
-    return resources;
+    return resolved;
   }
 
-  private resolvePath(endpoint: EndpointDescriptor, input: Record<string, unknown>): string {
-    let path = endpoint.path;
-
-    for (const param of endpoint.pathParams) {
-      const value = input[param.paramName];
-      if (value === undefined || value === null) {
-        throw new Error(
-          `Missing required path param \"${param.paramName}\" for ${endpoint.httpMethod} ${endpoint.path}`,
-        );
-      }
-
-      path = path.replace(param.token, encodeURIComponent(String(value)));
-    }
-
-    return path;
+  private createWeb() {
+    return {
+      landingPage: this.bind(primitives.get),
+    };
   }
 
-  private extractErrorMessage(payload: unknown): string | null {
-    if (!payload) return null;
-    if (typeof payload === 'string') return payload;
+  private createMacos() {
+    return {
+      lock: this.bind(primitives.postApiV1MacLock),
+    };
+  }
 
-    if (typeof payload === 'object') {
-      const message = (payload as { message?: unknown }).message;
-      if (typeof message === 'string' && message.trim().length > 0) {
-        return message;
-      }
-    }
+  private createIcloud() {
+    return {
+      accountInfo: this.bind(primitives.getApiV1IcloudAccount),
+      contactCard: this.bind(primitives.getApiV1IcloudContact),
+      listDevices: this.bind(primitives.getApiV1IcloudFindmyDevices),
+      listFriends: this.bind(primitives.getApiV1IcloudFindmyFriends),
+      refreshDevices: this.bind(primitives.postApiV1IcloudFindmyDevicesRefresh),
+      refreshFriends: this.bind(primitives.postApiV1IcloudFindmyFriendsRefresh),
+      updateAlias: this.bind(primitives.postApV1IcloudAccountAlias),
+    };
+  }
 
-    return null;
+  private createServer() {
+    return {
+      checkUpdate: this.bind(primitives.getApiV1ServerUpdateCheck),
+      info: this.bind(primitives.getApiV1ServerInfo),
+      installUpdate: this.bind(primitives.postApiV1ServerUpdateInstall),
+      listAlerts: this.bind(primitives.getApiV1ServerAlert),
+      logs: this.bind(primitives.getApiV1ServerLogs),
+      mediaTotals: this.bind(primitives.getApiV1ServerStatisticsMedia),
+      mediaTotalsByChat: this.bind(primitives.getApiV1ServerStatisticsMediaChat),
+      ping: this.bind(primitives.getApiV1Ping),
+      readAlerts: this.bind(primitives.postApiV1ServerAlertRead),
+      restartApp: this.bind(primitives.getApiV1ServerRestartHard),
+      restartServices: this.bind(primitives.getApiV1ServerRestartSoft),
+      totals: this.bind(primitives.getApiV1ServerStatisticsTotals),
+    };
+  }
+
+  private createFcm() {
+    return {
+      clientConfig: this.bind(primitives.getApiV1FcmClient),
+      registerDevice: this.bind(primitives.postApiV1FcmDevice),
+    };
+  }
+
+  private createChats() {
+    return {
+      addParticipant: this.bind(primitives.postApiV1ChatByChatGuidParticipant),
+      contactShareStatus: this.bind(primitives.getApiV1ChatByChatGuidShareContactStatus),
+      count: this.bind(primitives.getApiV1ChatCount),
+      create: this.bind(primitives.postApiV1ChatNew),
+      delete: this.bind(primitives.deleteApiV1ChatByChatGuid),
+      get: this.bind(primitives.getApiV1ChatByChatGuid),
+      leave: this.bind(primitives.postApiV1ChatByChatGuidLeave),
+      listMessages: this.bind(primitives.getApiV1ChatByChatGuidMessage),
+      query: this.bind(primitives.postApiV1ChatQuery),
+      read: this.bind(primitives.postApiV1ChatByChatGuidRead),
+      removeIcon: this.bind(primitives.deleteApiV1ChatByChatGuidIcon),
+      removeParticipant: this.bind(primitives.deleteApiV1ChatByChatGuidParticipant),
+      setIcon: this.bind(primitives.postApiV1ChatByChatGuidIcon),
+      shareContact: this.bind(primitives.postApiV1ChatByChatGuidShareContact),
+      typingStart: this.bind(primitives.postApiV1ChatByChatGuidTyping),
+      typingStop: this.bind(primitives.deleteApiV1ChatByChatGuidTyping),
+      unread: this.bind(primitives.postApiV1ChatByChatGuidUnread),
+      update: this.bind(primitives.putApiV1ChatByChatGuid),
+    };
+  }
+
+  private createHandles() {
+    return {
+      count: this.bind(primitives.getApiV1HandleCount),
+      faceTimeAvailability: this.bind(primitives.getApiV1HandleAvailabilityFacetime),
+      focusStatus: this.bind(primitives.getApiV1HandleByAddressFocus),
+      get: this.bind(primitives.getApiV1HandleByHandleAddress),
+      iMessageAvailability: this.bind(primitives.getApiV1HandleAvailabilityImessage),
+      query: this.bind(primitives.postApiV1HandleQuery),
+    };
+  }
+
+  private createMessages() {
+    return {
+      count: this.bind(primitives.getApiV1MessageCount),
+      countMe: this.bind(primitives.getApiV1MessageCountMe),
+      createScheduled: this.bind(primitives.postApiV1MessageSchedule),
+      deleteScheduled: this.bind(primitives.deleteApiV1MessageScheduleById),
+      edit: this.bind(primitives.postApiV1MessageByGuidEdit),
+      embeddedMedia: this.bind(primitives.getApiV1MessageByGuidEmbeddedMedia),
+      get: this.bind(primitives.getApiV1MessageByGuid),
+      getScheduled: this.bind(primitives.getApiV1MessageScheduleById),
+      listScheduled: this.bind(primitives.getApiV1MessageSchedule),
+      notify: this.bind(primitives.postApiV1MessageByGuidNotify),
+      query: this.bind(primitives.postApiV1MessageQuery),
+      react: this.bind(primitives.postApiV1MessageReact),
+      sendAttachment: this.bind(primitives.postApiV1MessageAttachment),
+      sendMultipart: this.bind(primitives.postApiV1MessageMultipart),
+      sendText: this.bind(primitives.postApiV1MessageText),
+      unsend: this.bind(primitives.postApiV1MessageByGuidUnsend),
+      updateScheduled: this.bind(primitives.putApiV1MessageScheduleById),
+    };
+  }
+
+  private createAttachments() {
+    return {
+      blurhash: this.bind(primitives.getApiV1AttachmentByGuidBlurhash),
+      count: this.bind(primitives.getApiV1AttachmentCount),
+      download: this.bind(primitives.getApiV1AttachmentByGuidDownload),
+      downloadForce: this.bind(primitives.getApiV1AttachmentByGuidDownloadForce),
+      get: this.bind(primitives.getApiV1AttachmentByGuid),
+      livePhoto: this.bind(primitives.getApiV1AttachmentByGuidLive),
+      upload: this.bind(primitives.postApiV1AttachmentUpload),
+    };
+  }
+
+  private createContacts() {
+    return {
+      list: this.bind(primitives.getApiV1Contact),
+      query: this.bind(primitives.postApiV1ContactQuery),
+    };
+  }
+
+  private createBackups() {
+    return {
+      deleteSettings: this.bind(primitives.deleteApiV1BackupSettings),
+      deleteTheme: this.bind(primitives.deleteApiV1BackupTheme),
+      getSettings: this.bind(primitives.getApiV1BackupSettings),
+      listThemes: this.bind(primitives.getApiV1BackupTheme),
+      saveSettings: this.bind(primitives.postApiV1BackupSettings),
+      saveTheme: this.bind(primitives.postApiV1BackupTheme),
+    };
   }
 }
-
-export type ApiResponse = unknown;
-export type DownloadResponse = Response;
-
-export const isDownloadResponse = isResponseLike;
