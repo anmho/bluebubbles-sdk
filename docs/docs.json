@@ -37,6 +37,10 @@
   "navbar": {
     "links": [
       {
+        "label": "Docs",
+        "href": "https://bluebubbles.anmho.com/"
+      },
+      {
         "label": "GitHub",
         "href": "https://github.com/anmho/bluebubbles-sdk"
       }
