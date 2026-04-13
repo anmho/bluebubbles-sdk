@@ -46,13 +46,34 @@ npm run spec:download
 npm run generate
 ```
 
-`spec:download`:
+`spec:download` (optional spec refresh):
 1. Downloads the official Postman collection.
 2. Normalizes unresolved placeholders required by the converter.
 3. Converts Postman -> OpenAPI (`spec/openapi.yaml`).
 
-`generate`:
+`generate` (normal SDK build path):
 1. Generates Hey API primitives and types to `src/generated`.
+
+`spec/openapi.yaml` is the source of truth for generation.  
+`prepare_postman.ts` is only used during `spec:download` to make Postman conversion reproducible.
+
+## Repro Steps
+
+From a clean checkout:
+
+```bash
+npm ci
+npm run generate
+npm test
+```
+
+If you want to refresh the spec first:
+
+```bash
+npm run spec:download
+npm run generate
+npm test
+```
 
 ## Scripts
 
