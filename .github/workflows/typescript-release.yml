@@ -1,28 +1,23 @@
-name: Release npm Package
+name: Release TypeScript SDK
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Version tag to release (e.g. v1.2.3) — must already exist as a git tag"
-        required: true
 
 jobs:
   release:
-    name: Build & publish @jgoon/bluebubbles
+    name: Version or publish @jgoon/bluebubbles
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -30,37 +25,30 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Derive version from tag
-        id: version
-        run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          VERSION="${TAG#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Stamp version into package.json
-        working-directory: sdks/typescript
-        run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '${{ steps.version.outputs.version }}';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-
       - name: Install dependencies
         working-directory: sdks/typescript
         run: npm ci
 
-      - name: Generate types from spec
-        working-directory: sdks/typescript
-        run: npm run generate
-
-      - name: Build
-        working-directory: sdks/typescript
-        run: npm run build
-
-      - name: Publish to npm
-        working-directory: sdks/typescript
+      - name: Create release PR or publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: |
+            cd sdks/typescript
+            npx changeset version
+          publish: |
+            cd sdks/typescript
+            npm run generate
+            npm run build
+            npm publish --access public --provenance
+          title: "chore(release): version packages"
+          commit: "chore(release): version packages"
+          createGithubReleases: true
         env:
-          NODE_AUTH_TOKEN: ""
-        run: npm publish --access public --provenance
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        if: always()
+        run: |
+          echo "published=${{ steps.changesets.outputs.published }}"
+          echo "hasChangesets=${{ steps.changesets.outputs.hasChangesets }}"

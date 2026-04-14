@@ -29,12 +29,17 @@
   "scripts": {
     "generate": "openapi-typescript ../../openapi.yaml -o src/schema.d.ts",
     "build": "tsc",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.6",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.7.0"
   },
