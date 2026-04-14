@@ -18,6 +18,22 @@ The SDK groups endpoints by product-facing resources:
 - `messages`
 - `server`
 - `web`
+- `webhooks`
+
+## Event names
+
+Use top-level `WEBHOOK_EVENT_TYPES` from the library to avoid hardcoding string event names:
+
+```ts
+import { WEBHOOK_EVENT_TYPES } from '@anmho/bluebubbles-sdk';
+
+await client.webhooks.create({
+  url: 'https://example.com/webhooks/bluebubbles',
+  events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE, WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE],
+});
+```
+
+For incoming webhook requests, use `client.webhooks.constructEvent(rawBody)` to parse and validate payloads before switching on `event.type`.
 
 ## Method input shape
 
