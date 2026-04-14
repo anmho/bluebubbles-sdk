@@ -44,3 +44,57 @@ if (isDownloadResponse(result)) {
   console.log(bytes.byteLength);
 }
 ```
+
+## Webhooks
+
+```ts
+import { WEBHOOK_EVENT_TYPES } from '@anmho/bluebubbles-sdk';
+
+const hooks = await client.webhooks.list();
+
+await client.webhooks.create({
+  url: 'https://example.com/webhooks/bluebubbles',
+  events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE],
+});
+```
+
+## Webhook handler example (Stripe-style `constructEvent` + `switch`)
+
+```ts
+import {
+  BlueBubblesClient,
+  WEBHOOK_EVENT_TYPES,
+} from '@anmho/bluebubbles-sdk';
+
+const client = new BlueBubblesClient({
+  baseUrl: process.env.BLUEBUBBLES_URL!,
+  password: process.env.BLUEBUBBLES_PASSWORD!,
+});
+
+export async function POST(req: Request) {
+  const body = await req.text();
+
+  let event;
+  try {
+    event = client.webhooks.constructEvent(body);
+  } catch (err) {
+    return Response.json(
+      { error: err instanceof Error ? err.message : 'Invalid webhook payload' },
+      { status: 400 },
+    );
+  }
+
+  switch (event.type) {
+    case WEBHOOK_EVENT_TYPES.NEW_MESSAGE:
+      console.log('New message event', event.data);
+      break;
+    case WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE:
+      console.log('Updated message event', event.data);
+      break;
+    default:
+      console.log('Unhandled event type', event.type);
+  }
+
+  return Response.json({ received: true });
+}
+```

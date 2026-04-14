@@ -2,6 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { BlueBubblesClient } from '~/client';
+import {
+  constructWebhookEvent,
+  WEBHOOK_EVENT_TYPES,
+  isIncomingWebhookEvent,
+  isIncomingWebhookEventOfType,
+  isWebhookEventType,
+  WebhookEventParseError,
+} from '~/webhooks';
 
 type FetchCall = {
   input: RequestInfo | URL;
@@ -26,6 +34,20 @@ const getCallDetails = (call: FetchCall): { method: string; url: URL } => {
     method: call.init?.method ?? 'GET',
     url: new URL(String(call.input)),
   };
+};
+
+const getJsonBody = async (call: FetchCall): Promise<unknown> => {
+  if (call.input instanceof Request) {
+    const text = await call.input.clone().text();
+    return text ? JSON.parse(text) : {};
+  }
+
+  const rawBody = call.init?.body;
+  if (!rawBody || typeof rawBody !== 'string') {
+    return {};
+  }
+
+  return JSON.parse(rawBody);
 };
 
 test('server.ping maps to the expected endpoint and injects password query', async () => {
@@ -95,4 +117,109 @@ test('chats.get maps path parameters to the generated primitive input', async ()
   const url = request.url;
   assert.equal(url.pathname, '/api/v1/chat/abc');
   assert.equal(url.searchParams.get('password'), 'secret');
+});
+
+test('webhooks.list maps to the expected endpoint and injects password query', async () => {
+  const calls: FetchCall[] = [];
+  const fetchMock = async (input, init) => {
+    calls.push({ input, init });
+    return createJsonResponse({ data: [] });
+  };
+
+  const client = new BlueBubblesClient({
+    baseUrl: 'http://localhost:1234',
+    password: 'secret',
+    fetch: fetchMock,
+  });
+
+  await client.webhooks.list();
+  assert.equal(calls.length, 1);
+  const request = getCallDetails(calls[0]);
+  assert.equal(request.method, 'GET');
+
+  const url = request.url;
+  assert.equal(url.pathname, '/api/v1/webhook');
+  assert.equal(url.searchParams.get('password'), 'secret');
+});
+
+test('webhooks.create accepts top-level params and sends expected request body', async () => {
+  const calls: FetchCall[] = [];
+  const fetchMock = async (input, init) => {
+    calls.push({ input, init });
+    return createJsonResponse({ data: { id: 1 } });
+  };
+
+  const client = new BlueBubblesClient({
+    baseUrl: 'http://localhost:1234',
+    password: 'secret',
+    fetch: fetchMock,
+  });
+
+  await client.webhooks.create({
+    url: 'https://example.com/hook',
+    events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE],
+  });
+
+  assert.equal(calls.length, 1);
+  const request = getCallDetails(calls[0]);
+  assert.equal(request.method, 'POST');
+  assert.equal(request.url.pathname, '/api/v1/webhook');
+  assert.equal(request.url.searchParams.get('password'), 'secret');
+
+  const body = await getJsonBody(calls[0]);
+  assert.deepEqual(body, {
+    url: 'https://example.com/hook',
+    events: ['new-message'],
+  });
+});
+
+test('webhook helpers validate and narrow incoming payloads', () => {
+  const payload = {
+    type: 'new-message',
+    data: { guid: 'abc' },
+  };
+
+  assert.equal(isWebhookEventType(payload.type), true);
+  assert.equal(isIncomingWebhookEvent(payload), true);
+  assert.equal(isIncomingWebhookEventOfType(payload, WEBHOOK_EVENT_TYPES.NEW_MESSAGE), true);
+  assert.equal(isIncomingWebhookEventOfType(payload, WEBHOOK_EVENT_TYPES.SERVER_UPDATE), false);
+});
+
+test('constructWebhookEvent parses valid JSON payloads and rejects invalid payloads', () => {
+  const raw = JSON.stringify({
+    type: 'new-message',
+    data: { guid: 'abc' },
+  });
+
+  const event = constructWebhookEvent(raw);
+  assert.equal(event.type, 'new-message');
+  assert.deepEqual(event.data, { guid: 'abc' });
+
+  assert.throws(
+    () => constructWebhookEvent('{"type":"unknown-event","data":{}}'),
+    WebhookEventParseError,
+  );
+});
+
+test('client.webhooks.constructEvent supports stripe-style switch handling flow', () => {
+  const client = new BlueBubblesClient({
+    baseUrl: 'http://localhost:1234',
+    password: 'secret',
+    fetch: async () => createJsonResponse({ ok: true }),
+  });
+
+  const event = client.webhooks.constructEvent(
+    JSON.stringify({
+      type: WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE,
+      data: { guid: 'abc', text: 'updated' },
+    }),
+  );
+
+  switch (event.type) {
+    case WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE:
+      assert.deepEqual(event.data, { guid: 'abc', text: 'updated' });
+      break;
+    default:
+      assert.fail(`Unhandled event type in test: ${event.type}`);
+  }
 });
