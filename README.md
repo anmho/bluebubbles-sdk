@@ -92,6 +92,31 @@ npm run generate
 npm test
 ```
 
+## Contributing
+
+1. Create a feature branch and make your changes.
+2. Run local checks before opening a PR:
+
+```bash
+npm run generate
+npm run build
+npm test
+```
+
+3. For any user-facing SDK change, add a changeset:
+
+```bash
+npm run changeset
+```
+
+Choose `patch`, `minor`, or `major` for `@anmho/bluebubbles-sdk` and include a short summary.
+
+4. Commit both your code changes and the generated `.changeset/*.md` file.
+
+Release flow:
+- Merging PRs into `main` updates/creates a release PR.
+- Merging the release PR publishes to npm and creates a GitHub Release.
+
 ## Scripts
 
 - `spec:download`
