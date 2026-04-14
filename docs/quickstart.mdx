@@ -44,3 +44,37 @@ if (isDownloadResponse(result)) {
   console.log(bytes.byteLength);
 }
 ```
+
+## Webhooks
+
+```ts
+import { WEBHOOK_EVENT_TYPES } from '@anmho/bluebubbles-sdk';
+
+const hooks = await client.webhooks.list();
+
+await client.webhooks.create({
+  url: 'https://example.com/webhooks/bluebubbles',
+  events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE],
+});
+```
+
+## Incoming webhook type helpers
+
+```ts
+import {
+  WEBHOOK_EVENT_TYPES,
+  isIncomingWebhookEvent,
+  isIncomingWebhookEventOfType,
+} from '@anmho/bluebubbles-sdk';
+
+const payload = JSON.parse(rawBody);
+
+if (isIncomingWebhookEvent(payload)) {
+  console.log(payload.type);
+}
+
+if (isIncomingWebhookEventOfType(payload, WEBHOOK_EVENT_TYPES.NEW_MESSAGE)) {
+  // payload.type is now narrowed to "new-message"
+  console.log(payload.data);
+}
+```

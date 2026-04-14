@@ -38,7 +38,18 @@ const attachment = await client.attachments.download({ path: { guid: 'ATTACHMENT
 
 ## Resources
 
-`client.attachments`, `client.backups`, `client.chats`, `client.contacts`, `client.fcm`, `client.handles`, `client.icloud`, `client.macos`, `client.messages`, `client.server`, `client.web`
+`client.attachments`, `client.backups`, `client.chats`, `client.contacts`, `client.fcm`, `client.handles`, `client.icloud`, `client.macos`, `client.messages`, `client.server`, `client.web`, `client.webhooks`
+
+## Event constants
+
+```ts
+import { WEBHOOK_EVENT_TYPES } from '@anmho/bluebubbles-sdk';
+
+await client.webhooks.create({
+  url: 'https://example.com/webhooks/bluebubbles',
+  events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE, WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE],
+});
+```
 
 ## Generation
 

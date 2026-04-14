@@ -1,5 +1,6 @@
 import { createClient, createConfig } from '~/generated/client/index';
 import { Sdk as GeneratedSdk } from '~/generated/sdk.gen';
+import type { WebhookCreateParams } from '~/webhooks';
 
 type OperationFn = (...args: any[]) => any;
 type OperationOptions = {
@@ -71,6 +72,7 @@ export class BlueBubblesClient {
   readonly messages: ReturnType<BlueBubblesClient['createMessages']>;
   readonly server: ReturnType<BlueBubblesClient['createServer']>;
   readonly web: ReturnType<BlueBubblesClient['createWeb']>;
+  readonly webhooks: ReturnType<BlueBubblesClient['createWebhooks']>;
 
   constructor(options: BlueBubblesClientOptions) {
     this.baseUrl = normalizeBaseUrl(options.baseUrl);
@@ -95,6 +97,7 @@ export class BlueBubblesClient {
     this.messages = this.createMessages();
     this.server = this.createServer();
     this.web = this.createWeb();
+    this.webhooks = this.createWebhooks();
   }
 
   get config(): Readonly<BlueBubblesClientOptions> {
@@ -151,6 +154,23 @@ export class BlueBubblesClient {
   private createWeb() {
     return {
       landingPage: this.bind(primitives.get),
+    };
+  }
+
+  private createWebhooks() {
+    return {
+      create: this.bind((options: Omit<OperationOptions, 'body'> & WebhookCreateParams) => {
+        const { url, events, ...rest } = options;
+        return this.httpClient.post({
+          url: '/api/v1/webhook',
+          body: { url, events },
+          ...rest,
+        });
+      }),
+      delete: this.bind((options?: OperationOptions) =>
+        this.httpClient.delete({ url: '/api/v1/webhook/{id}', ...(options ?? {}) })),
+      list: this.bind((options?: OperationOptions) =>
+        this.httpClient.get({ url: '/api/v1/webhook', ...(options ?? {}) })),
     };
   }
 
