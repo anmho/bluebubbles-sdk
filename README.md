@@ -116,13 +116,14 @@ Choose `patch`, `minor`, or `major` for `@anmho/bluebubbles-sdk` and include a s
 Release flow:
 - Merging PRs into `main` updates/creates a release PR.
 - Merging the release PR publishes to npm and creates a GitHub Release.
-- Trusted publishing configuration and troubleshooting: [`docs/runbooks/trusted-publishing.md`](docs/runbooks/trusted-publishing.md)
+- Current unblock publish path (GitHub secret `NPM_TOKEN`): [`docs/runbooks/npm-token-publish-unblock.md`](docs/runbooks/npm-token-publish-unblock.md)
+- Trusted publishing target state: [`docs/runbooks/trusted-publishing.md`](docs/runbooks/trusted-publishing.md)
 
 Release troubleshooting:
 - Merging a normal PR does not publish immediately. Publish happens only after the release PR is merged.
 - If no `.changeset/*.md` file is included in merged PRs, no release PR is created.
 - The publish build must be green (`npm run build`) in CI.
-- Trusted publishing setup must match npm package settings (owner/repo/workflow/branch).
+- In temporary token mode, repo secret `NPM_TOKEN` must be present and valid.
 
 ### Example release-ready PR
 

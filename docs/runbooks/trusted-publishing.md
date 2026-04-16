@@ -1,9 +1,11 @@
 # Trusted Publishing Runbook
 
-This repository publishes `@anmho/bluebubbles-sdk` to npm using GitHub OIDC trusted publishing.
-No long-lived npm token is required in GitHub secrets.
+This is the target-state runbook for publishing `@anmho/bluebubbles-sdk` to npm using GitHub OIDC trusted publishing.
+No long-lived npm token is required in GitHub secrets in this model.
 
-## Architecture
+Temporary current-state unblock with `NPM_TOKEN` lives in `docs/runbooks/npm-token-publish-unblock.md`.
+
+## Target Architecture
 
 - GitHub Actions release workflow: `.github/workflows/release.yml`
 - Release orchestrator: `changesets/action`
@@ -25,13 +27,11 @@ Notes:
 - Values are exact and case-sensitive.
 - If workflow file or branch changes, update npm trusted publisher settings.
 
-## CI Requirements
+## CI Requirements (Trusted Publishing Mode)
 
 - Workflow must include `permissions.id-token: write`.
 - Workflow must run npm `>= 11.5.1`.
 - Workflow must not depend on `NPM_TOKEN` for publish.
-
-Current release workflow enforces npm version and fails early if too old.
 
 ## Release Flow
 

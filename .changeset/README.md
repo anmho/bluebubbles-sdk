@@ -16,4 +16,5 @@ On merge to `main`, the release workflow will open or update a version PR.
 When that PR is merged, the workflow will publish to npm and create a GitHub Release.
 
 If no changeset files exist on `main`, the workflow will not publish.
-Trusted publishing setup and troubleshooting live in `docs/runbooks/trusted-publishing.md`.
+Current temporary publish setup is in `docs/runbooks/npm-token-publish-unblock.md`.
+Trusted publishing target-state setup is in `docs/runbooks/trusted-publishing.md`.
