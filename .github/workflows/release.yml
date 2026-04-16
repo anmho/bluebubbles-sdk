@@ -19,8 +19,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      - name: Verify npm version for trusted publishing
+        run: |
+          REQUIRED="11.5.1"
+          CURRENT="$(npm -v)"
+          echo "npm version: ${CURRENT}"
+          if [ "$(printf '%s\n' "${REQUIRED}" "${CURRENT}" | sort -V | head -n1)" != "${REQUIRED}" ]; then
+            echo "npm ${REQUIRED}+ is required for npm trusted publishing."
+            exit 1
+          fi
 
       - name: Install Dependencies
         run: npm ci
@@ -36,4 +46,3 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
