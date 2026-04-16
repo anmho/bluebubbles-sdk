@@ -117,6 +117,46 @@ Release flow:
 - Merging PRs into `main` updates/creates a release PR.
 - Merging the release PR publishes to npm and creates a GitHub Release.
 
+Release troubleshooting:
+- Merging a normal PR does not publish immediately. Publish happens only after the release PR is merged.
+- If no `.changeset/*.md` file is included in merged PRs, no release PR is created.
+- `NPM_TOKEN` must be configured in repository secrets for npm publish.
+- The publish build must be green (`npm run build`) in CI.
+
+### Example release-ready PR
+
+Use this sequence when your PR includes user-facing SDK changes:
+
+```bash
+# 1) Make your code/docs change
+git checkout -b feat/my-change
+
+# 2) Add release metadata
+npm run changeset
+
+# 3) Validate locally
+npm run generate
+npm run build
+npm test
+
+# 4) Commit and open PR
+git add .
+git commit -m "feat: describe your change"
+git push
+```
+
+The changeset file should look like:
+
+```md
+---
+"@anmho/bluebubbles-sdk": patch
+---
+
+Brief release note for users.
+```
+
+After merge to `main`, automation opens/updates a release PR. Merging that release PR publishes to npm and creates a GitHub Release.
+
 ## Scripts
 
 - `spec:download`

@@ -30,7 +30,14 @@ jobs:
         uses: changesets/action@v1
         with:
           version: npx changeset version
-          publish: npx changeset publish --access public
+          publish: |
+            npm run spec:download
+            if [ -n "${NPM_TOKEN}" ]; then
+              npx changeset publish --access public
+            else
+              npm run build
+              npm publish --access public --provenance
+            fi
           title: "chore(release): version package"
           commit: "chore(release): version package"
           createGithubReleases: true
