@@ -118,6 +118,7 @@ Release flow:
 - Merging the release PR publishes to npm and creates a GitHub Release.
 - Current unblock publish path (GitHub secret `NPM_TOKEN`): [`docs/runbooks/npm-token-publish-unblock.md`](docs/runbooks/npm-token-publish-unblock.md)
 - Trusted publishing target state: [`docs/runbooks/trusted-publishing.md`](docs/runbooks/trusted-publishing.md)
+- Incident notes (recent failures + fixes) are tracked in the unblock runbook.
 
 Release troubleshooting:
 - Merging a normal PR does not publish immediately. Publish happens only after the release PR is merged.

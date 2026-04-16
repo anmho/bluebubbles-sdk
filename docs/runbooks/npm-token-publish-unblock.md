@@ -59,6 +59,32 @@ npm owner ls @anmho/bluebubbles-sdk
 - No changeset file was merged.
 - Ensure at least one `.changeset/*.md` file exists on `main`.
 
+## Incident Notes (Observed Failures + Fixes)
+
+### 2026-04-16: Publish failing with `E404` to npm registry
+
+- Symptom: release workflow reached publish step but failed with `E404 Not Found` on `@anmho/bluebubbles-sdk`.
+- Root cause: npm-side auth/ownership/trusted-publisher mapping was not ready for the package.
+- Fix applied: switched CI to temporary token mode (`NODE_AUTH_TOKEN` from repo secret `NPM_TOKEN`) to unblock publish.
+
+### 2026-04-16: PR merge failing with `403 Resource not accessible by integration`
+
+- Symptom: merge API call failed for `anmho/terraform` PR with 403.
+- Root cause: repository-level GitHub Actions token policy was too restrictive (`default_workflow_permissions=read` and approvals disabled).
+- Fix applied: set repo workflow permissions to write and enabled review approvals for workflows.
+- Resolution command used:
+
+```bash
+gh api --method PUT repos/anmho/terraform/actions/permissions/workflow \
+  -F default_workflow_permissions=write \
+  -F can_approve_pull_request_reviews=true
+```
+
+Note:
+
+- This specific 403 was a repo configuration issue, not a confirmed GitHub App installation permission issue.
+- If 403 persists after rerunning with updated repo settings, then check app installation scopes (`contents: write`, `pull requests: write`).
+
 ## Security Notes (Temporary Mode)
 
 - Keep token scope minimal and publish-only.
