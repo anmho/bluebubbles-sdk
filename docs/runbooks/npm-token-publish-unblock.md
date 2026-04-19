@@ -1,8 +1,16 @@
-# npm Token Publish Unblock Runbook
+# Legacy Repo-Secret Unblock Runbook (Archived)
 
-This runbook documents the temporary unblock path for publishing `@anmho/bluebubbles-sdk` from GitHub Actions using `NPM_TOKEN`.
+This document is retained for historical context only.
 
-Use this while npm trusted publishing is being fixed.
+Current active unblock mode is Vault-backed token retrieval:
+
+- `docs/runbooks/vault-publish-unblock.md`
+
+Trusted publishing target-state runbook:
+
+- `docs/runbooks/trusted-publishing.md`
+
+The remaining sections below describe the previous repo-secret approach (`secrets.NPM_TOKEN`) and incident history from that phase.
 
 ## Current Architecture
 

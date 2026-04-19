@@ -3,7 +3,7 @@
 This is the target-state runbook for publishing `@anmho/bluebubbles-sdk` to npm using GitHub OIDC trusted publishing.
 No long-lived npm token is required in GitHub secrets in this model.
 
-Temporary current-state unblock with `NPM_TOKEN` lives in `docs/runbooks/npm-token-publish-unblock.md`.
+Temporary current-state unblock with Vault-backed npm token lives in `docs/runbooks/vault-publish-unblock.md`.
 
 ## Target Architecture
 
