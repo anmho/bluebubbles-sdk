@@ -82,9 +82,14 @@ npm run build
 This will:
 1. Download the latest Postman collection.
 2. Convert it to OpenAPI 3.0.
-3. Patch the spec for better TypeScript ergonomics.
-4. Generate the SDK source.
-5. Compile to JavaScript.
+3. Generate the SDK source.
+4. Compile to JavaScript.
+
+For local iteration (without refreshing the spec), run:
+
+```bash
+npm run build
+```
 
 ## License
 ISC
