@@ -116,6 +116,7 @@ Choose `patch`, `minor`, or `major` for `@anmho/bluebubbles-sdk` and include a s
 Release flow:
 - Merging PRs into `main` updates or creates a release PR.
 - Merging the release PR publishes to npm and creates a GitHub Release.
+- Merging a normal feature PR into `main` does not publish by itself. Publish only happens when the generated `chore(release): version package` PR is merged.
 
 Release troubleshooting:
 - Merging a normal PR does not publish immediately. Publish happens only after the release PR is merged.
