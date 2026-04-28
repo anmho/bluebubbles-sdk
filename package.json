@@ -1,34 +1,36 @@
 {
   "name": "@anmho/bluebubbles-sdk",
   "version": "0.1.2",
-  "description": "TypeScript SDK for the BlueBubbles Server REST API",
+  "description": "Resource-grouped TypeScript SDK for BlueBubbles",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "spec:download": "curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o spec/bluebubbles.postman.json",
-    "spec:convert": "npx postman-to-openapi -s spec/bluebubbles.postman.json -o spec/bluebubbles.openapi.yaml",
-    "spec:refresh": "npm run spec:download && npm run spec:convert",
-    "generate": "npx openapi-typescript-codegen --input spec/bluebubbles.openapi.yaml --output ./src --client fetch --useOptions --name BlueBubblesClient --postfixServices Service",
-    "build": "npm run generate && tsc",
-    "build:from-postman": "npm run spec:refresh && npm run build",
+    "spec:download": "mkdir -p spec && curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o /tmp/bluebubbles.postman.json && tsx scripts/prepare_postman.ts /tmp/bluebubbles.postman.json && npx postman-to-openapi -s /tmp/bluebubbles.postman.json -o spec/openapi.yaml",
+    "generate": "npx openapi-ts -f openapi-ts.config.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish --access public",
     "release:publish": "npm run build && npx changeset publish --access public",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && tsx --test tests/**/*.test.ts",
+    "docs:sync-openapi": "cp spec/openapi.yaml docs/openapi.yaml",
+    "docs:dev": "npm run docs:sync-openapi && cd docs && mint dev --no-open",
+    "docs:validate": "npm run docs:sync-openapi && cd docs && mint validate"
   },
   "keywords": [
     "bluebubbles",
     "sdk",
     "typescript"
   ],
-  "author": "",
-  "license": "ISC",
   "files": [
     "dist",
     "README.md"
   ],
+  "license": "MIT",
+  "homepage": "https://bluebubbles.anmho.com/",
   "bugs": {
     "url": "https://github.com/anmho/bluebubbles-sdk/issues"
   },
@@ -39,8 +41,12 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.6",
-    "openapi-typescript-codegen": "^0.30.0",
+    "@hey-api/openapi-ts": "^0.95.0",
+    "mint": "^4.2.507",
     "postman-to-openapi": "^1.7.3",
-    "typescript": "^6.0.2"
+    "postman-to-openapi-cli": "^1.1.2",
+    "tsx": "^4.20.5",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.8.3"
   }
 }

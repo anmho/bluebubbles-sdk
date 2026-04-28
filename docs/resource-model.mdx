@@ -1,0 +1,66 @@
+---
+title: Resource Model
+description: How grouped resources and method inputs are structured.
+---
+
+## Resource groups
+
+The SDK groups endpoints by product-facing resources:
+
+- `attachments`
+- `backups`
+- `chats`
+- `contacts`
+- `fcm`
+- `handles`
+- `icloud`
+- `macos`
+- `messages`
+- `server`
+- `web`
+- `webhooks`
+
+## Event names
+
+Use top-level `WEBHOOK_EVENT_TYPES` from the library to avoid hardcoding string event names:
+
+```ts
+import { WEBHOOK_EVENT_TYPES } from '@anmho/bluebubbles-sdk';
+
+await client.webhooks.create({
+  url: 'https://example.com/webhooks/bluebubbles',
+  events: [WEBHOOK_EVENT_TYPES.NEW_MESSAGE, WEBHOOK_EVENT_TYPES.UPDATED_MESSAGE],
+});
+```
+
+For incoming webhook requests, use `client.webhooks.constructEvent(rawBody)` to parse and validate payloads before switching on `event.type`.
+
+## Method input shape
+
+Each method accepts a single params object:
+
+- Path parameters under `path` (for example `path.chatGuid`, `path.guid`, `path.handleAddress`, `path.id`)
+- Optional `query`
+- Optional `body`
+- Optional `headers`
+
+```ts
+await client.chats.get({ path: { chatGuid: 'iMessage;+;12345' } });
+
+await client.messages.react({
+  body: {
+    chatGuid: 'iMessage;+;12345',
+    selectedMessageGuid: 'p:0/ABC-123',
+    reaction: 'love',
+  },
+});
+```
+
+## Config pattern
+
+The client follows an immutable managed-SDK style:
+
+```ts
+const next = client.withConfig({ baseUrl: 'https://staging.example.com' });
+console.log(next.config.baseUrl);
+```

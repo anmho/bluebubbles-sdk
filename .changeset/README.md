@@ -1,3 +1,19 @@
-This directory stores Changesets release notes.
+# Changesets
 
-Add one markdown file here for each user-facing change that should be versioned and released.
+Create one markdown file in this folder for each releasable change.
+
+Example:
+
+```md
+---
+"@anmho/bluebubbles-sdk": patch
+---
+
+Describe what changed.
+```
+
+On merge to `main`, the release workflow will open or update a version PR.
+When that PR is merged, the workflow will publish to npm and create a GitHub Release.
+
+If no changeset files exist on `main`, the workflow will not publish.
+Publishing requires the npm Trusted Publisher connection for this repository/workflow to remain configured.
