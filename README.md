@@ -114,13 +114,13 @@ Choose `patch`, `minor`, or `major` for `@anmho/bluebubbles-sdk` and include a s
 4. Commit both your code changes and the generated `.changeset/*.md` file.
 
 Release flow:
-- Merging PRs into `main` updates/creates a release PR.
+- Merging PRs into `main` updates or creates a release PR.
 - Merging the release PR publishes to npm and creates a GitHub Release.
 
 Release troubleshooting:
 - Merging a normal PR does not publish immediately. Publish happens only after the release PR is merged.
 - If no `.changeset/*.md` file is included in merged PRs, no release PR is created.
-- `NPM_TOKEN` must be configured in repository secrets for npm publish.
+- The npm Trusted Publisher mapping for `anmho/bluebubbles-sdk` and `release.yml` must remain configured on npm.
 - The publish build must be green (`npm run build`) in CI.
 
 ### Example release-ready PR
@@ -155,7 +155,9 @@ The changeset file should look like:
 Brief release note for users.
 ```
 
-After merge to `main`, automation opens/updates a release PR. Merging that release PR publishes to npm and creates a GitHub Release.
+After merge to `main`, automation opens or updates a release PR. Merging that release PR publishes to npm and creates a GitHub Release.
+
+The publish workflow lives in `.github/workflows/release.yml` and uses npm trusted publishing via GitHub OIDC, not `NPM_TOKEN`.
 
 ## Scripts
 

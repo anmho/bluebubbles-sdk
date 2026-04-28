@@ -19,11 +19,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Create release PR or publish
         id: changesets
@@ -36,4 +39,3 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

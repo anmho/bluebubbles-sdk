@@ -8,11 +8,11 @@
   "scripts": {
     "spec:download": "mkdir -p spec && curl -L 'https://documenter.gw.postman.com/api/collections/765844/UV5RnfwM?environment=765844-a726906e-f1b7-4919-83d5-e740cd155ddb&segregateAuth=true&versionTag=latest' -o /tmp/bluebubbles.postman.json && tsx scripts/prepare_postman.ts /tmp/bluebubbles.postman.json && npx postman-to-openapi -s /tmp/bluebubbles.postman.json -o spec/openapi.yaml",
     "generate": "npx openapi-ts -f openapi-ts.config.ts",
-    "build": "npm run generate && rm -rf dist && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish --access public",
-    "release:publish": "npm run spec:download && npx changeset publish --access public",
+    "release:publish": "npm run build && npx changeset publish --access public",
     "prepack": "npm run build",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && tsx --test tests/**/*.test.ts",
