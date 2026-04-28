@@ -13,13 +13,13 @@ A clean, production-ready TypeScript SDK for the BlueBubbles Server REST API.
 ## Installation
 
 ```bash
-npm install bluebubbles-sdk
+npm install @anmho/bluebubbles-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { BlueBubblesClient } from 'bluebubbles-sdk';
+import { BlueBubblesClient } from '@anmho/bluebubbles-sdk';
 
 const client = new BlueBubblesClient({
     baseUrl: 'https://your-server-address',
@@ -73,23 +73,29 @@ const serverInfo = await client.raw.server.getServerInfo();
 ## Development
 
 ### Building
-The SDK is generated from a Postman collection. To update and build:
+For local iteration against the checked-in OpenAPI spec:
 
 ```bash
 npm run build
 ```
 
-This will:
-1. Download the latest Postman collection.
-2. Convert it to OpenAPI 3.0.
-3. Generate the SDK source.
-4. Compile to JavaScript.
+This will generate the SDK source and compile it to JavaScript.
 
-For local iteration (without refreshing the spec), run:
+To refresh the Postman collection and regenerate from source docs:
 
 ```bash
-npm run build
+npm run build:from-postman
 ```
+
+### Releases
+Release automation is fully managed by Changesets and GitHub Actions.
+
+- User-facing PRs should include one `.changeset/*.md` file.
+- Merging PRs into `main` opens or updates a release PR named `chore(release): version package`.
+- Merging the release PR publishes `@anmho/bluebubbles-sdk` to npm with GitHub OIDC trusted publishing.
+- The release workflow also creates the corresponding GitHub Release automatically.
+
+The publish workflow lives in `.github/workflows/release.yml` and does not use `NPM_TOKEN`.
 
 ## License
 ISC
